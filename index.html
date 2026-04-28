@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Los Dos Gallos</title>
+
+<style>
+body{
+    margin:0;
+    font-family:Arial;
+    color:white;
+    text-align:center;
+    overflow:hidden;
+}
+
+#menu, #gameOver{
+    position:absolute;
+    width:100%;
+    top:30%;
+    z-index:2;
+}
+
+input, button{
+    padding:10px;
+    font-size:16px;
+    border-radius:8px;
+    border:none;
+}
+
+button{
+    background:#ff3c00;
+    color:white;
+}
+
+canvas{
+    display:none;
+    position:absolute;
+    top:0;
+    left:0;
+}
+
+#score{
+    position:absolute;
+    top:10px;
+    left:10px;
+    z-index:2;
+    font-size:18px;
+}
+</style>
+</head>
+
+<body>
+
+<div id="menu">
+    <h1>🐔 Los Dos Gallos 🔥</h1>
+    <input id="name" placeholder="Tu apodo">
+    <br><br>
+    <button onclick="startGame()">JUGAR</button>
+</div>
+
+<div id="gameOver" style="display:none;">
+    <h2 id="finalMessage"></h2>
+    <h3 id="finalScore"></h3>
+    <button onclick="restart()">Volver a jugar</button>
+    <div id="ranking"></div>
+</div>
+
+<div id="score">0</div>
+
+<canvas id="gameCanvas"></canvas>
+
+<script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+// 🔥 IMÁGENES (CAMBIA LOS LINKS)
+const fondo = new Image();
+fondo.src = "FONDO_URL_AQUI";
+
+const carne = new Image();
+carne.src = "https://cdn-icons-png.flaticon.com/512/1046/1046784.png";
+
+const pollo = new Image();
+pollo.src = "https://cdn-icons-png.flaticon.com/512/135/135620.png";
+
+const burger = new Image();
+burger.src = "https://cdn-icons-png.flaticon.com/512/3075/3075977.png";
+
+const papa = new Image();
+papa.src = "https://cdn-icons-png.flaticon.com/512/1046/1046786.png";
+
+const carbon = new Image();
+carbon.src = "https://cdn-icons-png.flaticon.com/512/616/616494.png";
+
+let player = {
+    x: canvas.width/2,
+    y: canvas.height - 100,
+    width: 120,
+    height: 30
+};
+
+let items = [];
+let score = 0;
+let lives = 3;
+let speed = 3;
+let playerName = "";
+let gameRunning = false;
+
+let targetX = player.x;
+
+canvas.addEventListener("touchmove", e=>{
+    targetX = e.touches[0].clientX - player.width/2;
+});
+
+canvas.addEventListener("mousemove", e=>{
+    targetX = e.clientX - player.width/2;
+});
+
+function startGame(){
+    playerName = document.getElementById("name").value || "Anónimo";
+
+    document.getElementById("menu").style.display = "none";
+    canvas.style.display = "block";
+
+    score = 0;
+    lives = 3;
+    items = [];
+    speed = 3;
+    gameRunning = true;
+
+    loop();
+}
+
+function createItem(){
+    let rand = Math.random();
+    let type = rand < 0.8 ? "good" : "bad";
+
+    let img;
+    if(type === "bad") img = carbon;
+    else{
+        let foods = [carne, pollo, burger, papa];
+        img = foods[Math.floor(Math.random()*foods.length)];
+    }
+
+    items.push({
+        x: Math.random()*canvas.width,
+        y: -50,
+        type,
+        img
+    });
+}
+
+function update(){
+    player.x += (targetX - player.x)*0.2;
+
+    items.forEach((item, i)=>{
+        item.y += speed;
+
+        if(
+            item.y > player.y &&
+            item.x > player.x &&
+            item.x < player.x + player.width
+        ){
+            if(item.type==="good") score++;
+            else lives--;
+
+            items.splice(i,1);
+        }
+
+        if(item.y > canvas.height){
+            items.splice(i,1);
+        }
+    });
+
+    if(Math.random()<0.03) createItem();
+
+    speed += 0.002;
+
+    document.getElementById("score").innerText = `Puntos: ${score} | Vidas: ${lives}`;
+
+    if(lives<=0) endGame();
+}
+
+function draw(){
+    ctx.drawImage(fondo,0,0,canvas.width,canvas.height);
+
+    // parrilla
+    ctx.fillStyle = "orange";
+    ctx.fillRect(player.x, player.y, player.width, player.height);
+
+    items.forEach(item=>{
+        ctx.drawImage(item.img, item.x, item.y, 50, 50);
+    });
+}
+
+function loop(){
+    if(!gameRunning) return;
+    update();
+    draw();
+    requestAnimationFrame(loop);
+}
+
+function endGame(){
+    gameRunning = false;
+    canvas.style.display = "none";
+    document.getElementById("gameOver").style.display = "block";
+
+    let msg = score<10 ? "😅 Te falta sazón..."
+        : score<20 ? "🔥 Buen intento!"
+        : "🐔🔥 Maestro de la parrilla!";
+
+    document.getElementById("finalMessage").innerText = msg;
+    document.getElementById("finalScore").innerText = `${playerName} - ${score}`;
+
+    saveScore();
+    showRanking();
+}
+
+function restart(){
+    document.getElementById("gameOver").style.display="none";
+    startGame();
+}
+
+function saveScore(){
+    let ranking = JSON.parse(localStorage.getItem("ranking"))||[];
+    ranking.push({name:playerName,score});
+    ranking.sort((a,b)=>b.score-a.score);
+    ranking = ranking.slice(0,5);
+    localStorage.setItem("ranking",JSON.stringify(ranking));
+}
+
+function showRanking(){
+    let ranking = JSON.parse(localStorage.getItem("ranking"))||[];
+    let html="";
+    ranking.forEach((p,i)=>{
+        html += `<p>${i+1}. ${p.name} - ${p.score}</p>`;
+    });
+    document.getElementById("ranking").innerHTML = html;
+}
+</script>
+
+</body>
+</html>
