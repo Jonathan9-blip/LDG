@@ -13,7 +13,9 @@ body{
     text-align:center;
     overflow:hidden;
 
-    background-image: url("https://raw.githubusercontent.com/Jonathan9-blip/LDG/main/LDG.png");
+    background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.8)),
+    url("https://raw.githubusercontent.com/Jonathan9-blip/LDG/main/LDG.png");
+
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -21,9 +23,15 @@ body{
 
 #menu, #gameOver{
     position:absolute;
-    width:100%;
-    top:30%;
-    z-index:2;
+    top:50%;
+    left:50%;
+    transform:translate(-50%, -50%);
+    
+    background: rgba(0,0,0,0.6);
+    padding:25px;
+    border-radius:15px;
+    width:80%;
+    max-width:300px;
 }
 
 input, button{
@@ -198,7 +206,6 @@ function update(){
 }
 
 function draw(){
-   ctx.drawImage(fondo,0,0,canvas.width,canvas.height);
 ctx.fillStyle = "rgba(0,0,0,0.3)";
 ctx.fillRect(0,0,canvas.width,canvas.height);
 
