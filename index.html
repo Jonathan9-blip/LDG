@@ -12,6 +12,11 @@ body{
     color:white;
     text-align:center;
     overflow:hidden;
+
+    background-image: url("https://raw.githubusercontent.com/Jonathan9-blip/LDG/main/LDG.png");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
 }
 
 #menu, #gameOver{
@@ -134,6 +139,13 @@ function startGame(){
 
     loop();
 }
+function resizeCanvas(){
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+
+window.addEventListener("resize", resizeCanvas);
+resizeCanvas();
 
 function createItem(){
     let rand = Math.random();
@@ -186,7 +198,9 @@ function update(){
 }
 
 function draw(){
-    ctx.drawImage(fondo,0,0,canvas.width,canvas.height);
+   ctx.drawImage(fondo,0,0,canvas.width,canvas.height);
+ctx.fillStyle = "rgba(0,0,0,0.3)";
+ctx.fillRect(0,0,canvas.width,canvas.height);
 
     // parrilla
     ctx.fillStyle = "orange";
